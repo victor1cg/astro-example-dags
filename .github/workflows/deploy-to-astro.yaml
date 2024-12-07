@@ -17,11 +17,25 @@ on:
 
 env:
   ASTRO_API_TOKEN: ${{ inputs.apiToken || secrets.ASTRO_API_TOKEN }}
-  DEPLOYMENT_ID: ${{ inputs.deploymentId || vars.DEPLOYMENT_ID }}
+  DEPLOYMENT_ID: ${{ inputs.deploymentId || secrets.DEPLOYMENT_ID }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build Docker image
+      run: |
+        docker build -t docker.io/astral-gegenschein-9016/airflow:latest .
+        docker push docker.io/astral-gegenschein-9016/airflow:latest
+
     - name: Deploy to Astro
-      uses: astronomer/deploy-action@v0.4
+      uses: astronomer/deploy-action@v0.4   # Ensure you're using the correct version of this action
+      with:
+        deploymentId: ${{ env.DEPLOYMENT_ID }}
+        apiToken: ${{ env.ASTRO_API_TOKEN }}
